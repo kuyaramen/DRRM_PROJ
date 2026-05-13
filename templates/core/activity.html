@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}System Audit Trail | SNSU DRRM{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">System Audit Trail</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Official chronological record of all administrative actions and inventory modifications.</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button class="btn-base bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Download Logs</span>
+            </button>
+            {% if user.is_superuser %}
+            <button onclick="document.getElementById('clearModal').classList.remove('hidden')" class="btn-base bg-red-500 hover:bg-red-600 text-white transition-all flex items-center space-x-2 cursor-pointer shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Delete History</span>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Audit Filter Strip -->
+    <div class="enterprise-card p-6 bg-white dark:bg-enterprise-darkCard">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="md:col-span-2 relative">
+                <input type="text" name="q" placeholder="Search logs by action, user, or description..." 
+                    class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-enterprise-muted focus:bg-white dark:focus:bg-slate-900 rounded-lg outline-none transition-all text-sm text-slate-800 dark:text-slate-200">
+                <div class="absolute left-3 top-3 text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+            </div>
+            <select class="px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-sm text-slate-600 dark:text-slate-300 appearance-none cursor-pointer">
+                <option>All Modules</option>
+                <option>Inventory</option>
+                <option>Deployment</option>
+                <option>Users</option>
+            </select>
+            <button type="submit" class="btn-base bg-enterprise-muted text-white">Execute Search</button>
+        </form>
+    </div>
+
+    <!-- Audit Table -->
+    <div class="enterprise-card overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="db-table w-full">
+                <thead>
+                    <tr>
+                        <th class="text-left">Timestamp</th>
+                        <th class="text-left">Actor</th>
+                        <th class="text-left">Module / Action</th>
+                        <th class="text-left">Operational Details</th>
+                        <th class="text-left">Audit ID</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-enterprise-darkBorder">
+                    {% for log in logs %}
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td class="whitespace-nowrap font-medium text-slate-500 dark:text-slate-400">
+                            {{ log.timestamp|date:"Y-m-d H:i:s" }}
+                        </td>
+                        <td class="font-bold text-slate-800 dark:text-white">
+                            {{ log.user.username|default:"SYSTEM" }}
+                        </td>
+                        <td>
+                            <span class="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border {% if 'Delete' in log.action or 'Error' in log.action %}bg-red-50 text-red-600 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30{% else %}bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700{% endif %}">
+                                {{ log.action }}
+                            </span>
+                        </td>
+                        <td class="text-slate-600 dark:text-slate-400 max-w-xs truncate">
+                            {{ log.description }}
+                        </td>
+                        <td class="font-mono text-[10px] text-slate-400 dark:text-slate-600">
+                            #{{ log.id }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-20 text-center text-slate-400 italic">No historical audit data found for the current parameters.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Clear History Modal -->
+    <div id="clearModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-enterprise-darkCard rounded-xl shadow-2xl w-full max-w-sm overflow-hidden border border-red-200 dark:border-red-900/30">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 flex items-center justify-center mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white tracking-tight mb-2">Delete Audit History?</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400">This will permanently erase all system logs. This action cannot be undone. Are you absolutely sure?</p>
+            </div>
+            <div class="p-4 border-t border-slate-100 dark:border-enterprise-darkBorder flex justify-between space-x-3 bg-slate-50 dark:bg-slate-800/30">
+                <button onclick="document.getElementById('clearModal').classList.add('hidden')" class="flex-1 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer">Cancel</button>
+                <form action="{% url 'clear_activity_logs' %}" method="POST" class="flex-1">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full py-2.5 bg-red-600 text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-all cursor-pointer shadow-md">Confirm Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

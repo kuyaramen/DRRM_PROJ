@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventory | SNSU DRRM{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Resource Inventory Registry</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Official database for equipment, supplies, and disaster response assets.</p>
+        </div>
+        {% if user.is_staff %}
+        <div class="flex items-center space-x-3">
+            <a href="{% url 'export_inventory' %}" target="_blank" class="btn-base bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Export Audit</span>
+            </a>
+            <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="btn-base bg-enterprise-muted text-white hover:bg-enterprise-deep transition-all cursor-pointer">
+                + Register New Resource
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Minimal Search & Filters -->
+    <div class="enterprise-card p-6 bg-white dark:bg-enterprise-darkCard border border-slate-200 dark:border-enterprise-darkBorder">
+        <form method="GET" class="flex flex-col lg:flex-row gap-4">
+            <div class="flex-grow relative">
+                <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search registry records..." 
+                    class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-enterprise-muted focus:bg-white dark:focus:bg-slate-900 rounded-lg outline-none transition-all text-sm text-slate-800 dark:text-slate-200">
+                <div class="absolute left-3 top-3 text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="w-full lg:w-44">
+                <select name="category" onchange="this.form.submit()" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-sm text-slate-600 dark:text-slate-300 appearance-none cursor-pointer">
+                    <option value="">All Categories</option>
+                    <option value="Equipment" {% if request.GET.category == 'Equipment' %}selected{% endif %}>Equipment</option>
+                    <option value="Consumable" {% if request.GET.category == 'Consumable' %}selected{% endif %}>Consumable</option>
+                </select>
+            </div>
+
+            <div class="w-full lg:w-44">
+                <select name="status" onchange="this.form.submit()" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-sm text-slate-600 dark:text-slate-300 appearance-none cursor-pointer">
+                    <option value="">All Statuses</option>
+                    <option value="Available" {% if request.GET.status == 'Available' %}selected{% endif %}>Available</option>
+                    <option value="Borrowed" {% if request.GET.status == 'Borrowed' %}selected{% endif %}>Borrowed</option>
+                    <option value="Maintenance" {% if request.GET.status == 'Maintenance' %}selected{% endif %}>Maintenance</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-base bg-enterprise-muted text-white px-8">Filter</button>
+        </form>
+    </div>
+
+    <!-- Registry Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for item in items %}
+        <div class="enterprise-card p-6 flex flex-col group">
+            <div class="flex justify-between items-start mb-4">
+                <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                    {{ item.category }} • {{ item.barcode }}
+                </span>
+                <span class="text-[10px] font-bold uppercase tracking-widest {% if item.status == 'Available' %}text-emerald-600{% elif item.status == 'Borrowed' %}text-blue-500{% elif item.status == 'Low Stock' %}text-amber-500{% else %}text-red-600{% endif %}">
+                    ● {{ item.status }}
+                </span>
+            </div>
+            <h3 class="text-[15px] font-bold text-slate-800 dark:text-white mb-2 truncate group-hover:text-enterprise-deep dark:group-hover:text-emerald-400 transition-colors">{{ item.name }}</h3>
+            <p class="text-[12px] text-slate-500 dark:text-slate-400 line-clamp-2 mb-6 h-8">{{ item.description|default:"No secondary description recorded." }}</p>
+            
+            <div class="mt-auto pt-4 border-t border-slate-100 dark:border-enterprise-darkBorder flex items-center justify-between">
+                <div>
+                    <p class="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">Inventory Level</p>
+                    <p class="text-[18px] font-black text-slate-800 dark:text-white">{{ item.quantity }}</p>
+                </div>
+                {% if user.is_staff %}
+                <a href="{% url 'admin:core_item_change' item.id %}" target="_blank" class="p-2 text-slate-300 dark:text-slate-600 hover:text-enterprise-muted dark:hover:text-emerald-400 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-20 text-center text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+            <p class="text-sm italic">No records found matching current query parameters.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Add Resource Modal -->
+    <div id="addModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-enterprise-darkCard rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 dark:border-enterprise-darkBorder">
+            <div class="p-6 border-b border-slate-100 dark:border-enterprise-darkBorder flex justify-between items-center">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white tracking-tight">Register New Resource</h3>
+                <button onclick="document.getElementById('addModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <form action="{% url 'add_item' %}" method="POST" class="p-6 space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Resource Name</label>
+                    <input type="text" name="name" required class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:border-enterprise-muted">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Category</label>
+                        <select name="category" required class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:border-enterprise-muted">
+                            <option value="Equipment">Equipment</option>
+                            <option value="Consumable">Consumable</option>
+                            <option value="Medical">Medical</option>
+                            <option value="Safety">Safety</option>
+                            <option value="Tools">Tools</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Initial Qty</label>
+                        <input type="number" name="quantity" required min="0" value="0" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:border-enterprise-muted">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Low Stock Alert at</label>
+                        <input type="number" name="low_stock_threshold" required min="0" value="5" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:border-enterprise-muted">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Description (Optional)</label>
+                    <textarea name="description" rows="3" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:border-enterprise-muted"></textarea>
+                </div>
+                <div class="pt-4 border-t border-slate-100 dark:border-enterprise-darkBorder flex justify-end space-x-3">
+                    <button type="button" onclick="document.getElementById('addModal').classList.add('hidden')" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-enterprise-deep text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:brightness-110 transition-all cursor-pointer">Save Resource</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+
+{% block title %}Asset Identification Terminal | SNSU DRRM{% endblock %}
+
+{% block extra_head %}
+<style>
+    .video-container video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        border-radius: 12px;
+    }
+    .scanner-viewport {
+        position: relative;
+        aspect-ratio: 1 / 1;
+        background: #000;
+        border: 1px solid #E5E7EB;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .scan-guide {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        z-index: 10;
+    }
+    .guide-box {
+        width: 65%;
+        height: 65%;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+    .laser-line {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #10b981;
+        box-shadow: 0 0 15px #10b981, 0 0 5px #fff;
+        z-index: 20;
+        display: none;
+        opacity: 0.8;
+    }
+    .active-scanning .laser-line {
+        display: block;
+        animation: laser-sweep 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes laser-sweep {
+        0% { top: -5%; opacity: 0; }
+        20% { opacity: 1; }
+        80% { opacity: 1; }
+        100% { top: 105%; opacity: 0; }
+    }
+    .corner {
+        position: absolute; width: 16px; height: 16px;
+        border-color: #E5E7EB; border-width: 2px;
+    }
+    .top-left { top: -1px; left: -1px; border-top-style: solid; border-left-style: solid; border-radius: 8px 0 0 0; }
+    .top-right { top: -1px; right: -1px; border-top-style: solid; border-right-style: solid; border-radius: 0 8px 0 0; }
+    .bottom-left { bottom: -1px; left: -1px; border-bottom-style: solid; border-left-style: solid; border-radius: 0 0 0 8px; }
+    .bottom-right { bottom: -1px; right: -1px; border-bottom-style: solid; border-right-style: solid; border-radius: 0 0 8px 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-8">
+    <!-- Header -->
+    <div class="border-b border-slate-200 dark:border-slate-800 pb-6">
+        <h2 class="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Asset Identification Terminal</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Scan institutional QR code to initialize asset actions and deployment lifecycle.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- CENTER: Scanner Panel -->
+        <div class="lg:col-span-7 space-y-6">
+            <div class="enterprise-card p-4 bg-white dark:bg-enterprise-darkCard border border-slate-200 dark:border-enterprise-darkBorder">
+                <div class="scanner-viewport">
+                    <div id="reader"></div>
+                    <div class="scan-guide">
+                        <div id="guideBox" class="guide-box">
+                            <div class="laser-line"></div>
+                            <div class="corner top-left"></div>
+                            <div class="corner top-right"></div>
+                            <div class="corner bottom-left"></div>
+                            <div class="corner bottom-right"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 flex flex-col items-center space-y-4">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Align QR Code Within Frame</p>
+                    <div class="flex space-x-3">
+                        <button id="startBtn" class="btn-base bg-enterprise-deep text-white text-[11px] font-bold uppercase tracking-widest px-8 py-3 rounded-xl shadow-lg">Activate Optical Lens</button>
+                        <button id="stopBtn" class="btn-base bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[11px] font-bold uppercase tracking-widest px-8 py-3 rounded-xl hidden">Deactivate</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 px-2">
+                <div id="statusPulse" class="w-2 h-2 bg-slate-300 rounded-full"></div>
+                <span id="statusText" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hardware Interface Ready</span>
+            </div>
+        </div>
+
+        <!-- RIGHT: Scan Result Panel -->
+        <div class="lg:col-span-5 space-y-6">
+            <div id="placeholderPanel" class="enterprise-card p-12 flex flex-col items-center justify-center text-center space-y-4 border-dashed bg-slate-50/30 dark:bg-slate-900/10">
+                <div class="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-slate-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                </div>
+                <div>
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Awaiting Identity</h3>
+                    <p class="text-xs text-slate-400 mt-2 italic leading-relaxed">System is standing by for asset identification via high-fidelity QR scan.</p>
+                </div>
+            </div>
+
+            <div id="resultPanel" class="hidden animate-fade-in space-y-6">
+                <div class="enterprise-card p-6 border-l-4 border-l-enterprise-deep bg-white dark:bg-enterprise-darkCard">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <span id="resCategory" class="text-[10px] font-black text-enterprise-muted uppercase tracking-widest">Category</span>
+                            <h3 id="resName" class="text-xl font-bold text-slate-800 dark:text-white mt-1">Item Designation</h3>
+                            <p id="resCode" class="text-[11px] font-bold text-slate-400 uppercase mt-1 tracking-wider">DRRM-XXX-000</p>
+                        </div>
+                        <div id="resStatus" class="text-[10px] font-black px-2 py-1 rounded uppercase bg-emerald-50 text-emerald-600">Available</div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Registry Balance</span>
+                        <div id="resStock" class="text-3xl font-black text-slate-800 dark:text-white mt-1">--</div>
+                    </div>
+                </div>
+
+                <!-- QUICK ACTION BUTTONS -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="performAction('in', event)" class="btn-base bg-emerald-600 text-white text-[10px] font-black uppercase tracking-[0.15em] py-3.5 hover:bg-emerald-700 transition-all rounded-xl shadow-md">Stock In</button>
+                    <button onclick="performAction('out', event)" class="btn-base bg-red-600 text-white text-[10px] font-black uppercase tracking-[0.15em] py-3.5 hover:bg-red-700 transition-all rounded-xl shadow-md">Stock Out</button>
+                    <button onclick="performAction('borrow', event)" class="btn-base bg-enterprise-deep text-white text-[10px] font-black uppercase tracking-[0.15em] py-3.5 hover:bg-black transition-all rounded-xl shadow-md">Borrow Item</button>
+                    <button onclick="performAction('return', event)" class="btn-base bg-slate-600 text-white text-[10px] font-black uppercase tracking-[0.15em] py-3.5 hover:bg-slate-700 transition-all rounded-xl shadow-md">Return Item</button>
+                    <a id="viewDetails" href="#" class="col-span-2 block btn-base bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-black uppercase tracking-[0.2em] py-3.5 text-center rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700">View Full Asset Details</a>
+                </div>
+
+                <button onclick="resetScanner()" class="w-full text-[9px] font-black text-slate-400 hover:text-enterprise-muted uppercase tracking-[0.4em] transition-colors py-2">Clear Terminal Session</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    
+    let reader = null;
+    let currentItem = null;
+
+    const qrConfig = { fps: 15, qrbox: { width: 300, height: 300 } };
+
+    startBtn.addEventListener('click', () => {
+        if (typeof Html5Qrcode === 'undefined') {
+            alert("Lens Library failed to load. Please check your connection.");
+            return;
+        }
+
+        if (!reader) reader = new Html5Qrcode("reader");
+
+        startBtn.classList.add('hidden');
+        stopBtn.classList.remove('hidden');
+        statusPulse.classList.replace('bg-slate-300', 'bg-emerald-500');
+        statusPulse.classList.add('animate-pulse');
+        statusText.innerText = "Optic Sensor: Initializing...";
+        
+        reader.start(
+            { facingMode: "environment" }, 
+            qrConfig,
+            onScanSuccess
+        ).then(() => {
+            statusText.innerText = "Optic Sensor: Active";
+            document.getElementById('guideBox').classList.add('active-scanning');
+        }).catch(err => {
+            alert("Lens Interface Error: " + err);
+            resetScannerUI();
+        });
+    });
+
+    stopBtn.addEventListener('click', stopScanner);
+
+    function stopScanner() {
+        reader.stop().then(resetScannerUI).catch(err => console.error(err));
+    }
+
+    function resetScannerUI() {
+        startBtn.classList.remove('hidden');
+        stopBtn.classList.add('hidden');
+        statusPulse.classList.replace('bg-emerald-500', 'bg-slate-300');
+        statusPulse.classList.remove('animate-pulse');
+        statusText.innerText = "Hardware Interface Standing By";
+        document.getElementById('guideBox').classList.remove('active-scanning');
+    }
+
+    function onScanSuccess(decodedText) {
+        statusPulse.classList.replace('bg-emerald-500', 'bg-blue-500');
+        statusText.innerText = "Processing Identity...";
+        
+        fetch("{% url 'scan_barcode' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ barcode: decodedText })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // AUTO REDIRECT TO ITEM DETAIL PAGE
+                window.location.href = data.item.detail_url;
+            } else {
+                statusPulse.classList.replace('bg-blue-500', 'bg-emerald-500');
+                statusText.innerText = "Identity Failure";
+                setTimeout(() => { statusText.innerText = "Optic Sensor Active"; }, 2000);
+            }
+        })
+        .catch(err => console.error(err));
+    }
+
+    // resultPanel logic removed for automatic redirect flow
+
+    function renderResult(item) {
+        document.getElementById('resName').innerText = item.name;
+        document.getElementById('resCode').innerText = item.item_code;
+        document.getElementById('resCategory').innerText = item.category;
+        document.getElementById('resStock').innerText = item.quantity;
+        document.getElementById('viewDetails').href = item.detail_url;
+        
+        const statusTag = document.getElementById('resStatus');
+        statusTag.innerText = item.status;
+        statusTag.className = "text-[10px] font-black px-2 py-1 rounded uppercase " + 
+            (item.status === 'Available' ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600 border border-red-100");
+            
+        placeholder.classList.add('hidden');
+        resultPanel.classList.remove('hidden');
+    }
+
+    function resetScanner() {
+        currentItem = null;
+        resultPanel.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        if (stopBtn.classList.contains('hidden')) {
+            startBtn.click();
+        }
+    }
+
+    function performAction(action, event) {
+        if (!currentItem) return;
+        
+        const btn = event.currentTarget || event.target;
+        const originalText = btn.innerText;
+        btn.innerText = "Processing...";
+        btn.disabled = true;
+
+        fetch("{% url 'api_item_action' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ item_id: currentItem.id, action: action, quantity: 1 })
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            if (data.status === 'success') {
+                currentItem.quantity = data.new_quantity;
+                document.getElementById('resStock').innerText = data.new_quantity;
+                btn.innerText = "✓ Success";
+                setTimeout(() => { btn.innerText = originalText; }, 2000);
+            } else {
+                btn.innerText = originalText;
+                alert("Operation Error: " + data.message);
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerText = originalText;
+            alert("Network Interface Failure.");
+        });
+    }
+</script>
+{% endblock %}

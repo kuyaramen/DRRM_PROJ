@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Borrowing System | SNSU DRRM{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="flex justify-between items-end">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Resource Deployment System</h2>
+            <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Official tracking for field equipment lending and reclamation lifecycle.</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- New Borrowing Form -->
+        <div class="lg:col-span-4">
+            <div class="enterprise-card p-6 sticky top-24">
+                <h3 class="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider mb-6">Authorize Deployment</h3>
+                <form method="POST" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="borrow">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Select Asset</label>
+                        <select name="item_id" required class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:border-enterprise-muted">
+                            {% for item in items %}
+                            <option value="{{ item.id }}">{{ item.name }} (Avail: {{ item.quantity }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Borrower / Officer Name</label>
+                        <input type="text" name="borrower_name" required class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:border-enterprise-muted" placeholder="Full name of recipient...">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Deployment Quantity</label>
+                        <input type="number" name="quantity" required min="1" value="1" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:border-enterprise-muted">
+                    </div>
+                    <button type="submit" class="w-full btn-base bg-enterprise-deep text-white font-bold uppercase tracking-widest py-3">Register Deployment</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Active Deployments Table -->
+        <div class="lg:col-span-8">
+            <div class="enterprise-card overflow-hidden">
+                <div class="p-5 border-b border-slate-100 dark:border-enterprise-darkBorder bg-slate-50/30 dark:bg-slate-800/20">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-widest">Active & Historical Deployments</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="db-table w-full">
+                        <thead>
+                            <tr>
+                                <th class="text-left">Officer Name</th>
+                                <th class="text-left">Deployed Asset</th>
+                                <th class="text-left">Qty</th>
+                                <th class="text-left">Status</th>
+                                <th class="text-left">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in borrowings %}
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                <td class="font-semibold text-slate-800 dark:text-white">{{ record.borrower_name }}</td>
+                                <td class="text-slate-600 dark:text-slate-400">{{ record.item.name }}</td>
+                                <td class="font-bold text-slate-700 dark:text-slate-300">{{ record.quantity }}</td>
+                                <td>
+                                    {% if record.item.category in 'Consumable,Medical' %}
+                                        <span class="text-[9px] font-black text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded uppercase">Consumed</span>
+                                    {% elif record.status == 'Pending' %}
+                                        <span class="text-[9px] font-black text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded uppercase">In Field</span>
+                                    {% else %}
+                                        <span class="text-[9px] font-black text-slate-400 bg-slate-50 dark:bg-slate-800 px-2 py-0.5 rounded uppercase">Returned</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if record.item.category in 'Consumable,Medical' %}
+                                        <span class="text-[10px] text-slate-300 dark:text-slate-700 font-bold uppercase">Non-Returnable</span>
+                                    {% elif record.status == 'Pending' %}
+                                        <form method="POST">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="return">
+                                            <input type="hidden" name="borrow_id" value="{{ record.id }}">
+                                            <button type="submit" class="text-[10px] font-black text-enterprise-muted hover:underline uppercase tracking-widest bg-transparent border-none p-0 cursor-pointer">Reclaim</button>
+                                        </form>
+                                    {% else %}
+                                        <span class="text-[10px] text-slate-300 dark:text-slate-700 font-bold uppercase">{{ record.return_date|date:"M d" }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="py-12 text-center text-slate-400 italic">No deployment records found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

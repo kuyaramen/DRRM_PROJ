@@ -1,0 +1,37 @@
+<div id="task-{{ task.id }}" draggable="true" ondragstart="drag(event)" class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 cursor-move hover:border-enterprise-muted transition-all shadow-sm group">
+    <div class="flex justify-between items-start mb-2">
+        <h3 class="font-bold text-slate-800 dark:text-white text-[13px] leading-tight group-hover:text-enterprise-deep dark:group-hover:text-emerald-400 transition-colors">{{ task.title }}</h3>
+        <span class="text-[9px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest">{{ task.created_by }}</span>
+    </div>
+    
+    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-4 line-clamp-2 leading-relaxed">{{ task.description }}</p>
+    
+    <div class="space-y-1 mb-5">
+        {% for task_item in task.items.all %}
+            <div class="flex items-center justify-between text-[10px] bg-slate-50 dark:bg-slate-900/50 px-2 py-1.5 rounded border border-slate-100 dark:border-slate-700">
+                <span class="text-slate-600 dark:text-slate-300 truncate">{{ task_item.item.name }}</span>
+                <span class="font-black text-enterprise-muted dark:text-emerald-500 ml-1">x{{ task_item.quantity }}</span>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Status Actions (Enterprise) -->
+    <div class="flex flex-wrap gap-1.5 mb-4">
+        {% if task.status == 'Pending' %}
+            <button onclick="updateTaskStatus('{{ task.id }}', 'Approved')" class="text-[9px] font-black uppercase tracking-widest bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 transition-colors">Approve</button>
+        {% elif task.status == 'Approved' %}
+            <button onclick="updateTaskStatus('{{ task.id }}', 'In Use')" class="text-[9px] font-black uppercase tracking-widest bg-enterprise-muted text-white px-3 py-1.5 rounded hover:bg-enterprise-deep transition-colors">Deploy</button>
+            <button onclick="updateTaskStatus('{{ task.id }}', 'Pending')" class="text-[9px] font-black uppercase tracking-widest border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 px-3 py-1.5 rounded hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">Return</button>
+        {% elif task.status == 'In Use' %}
+            <button onclick="updateTaskStatus('{{ task.id }}', 'Completed')" class="text-[9px] font-black uppercase tracking-widest bg-slate-800 dark:bg-slate-900 text-white px-3 py-1.5 rounded hover:bg-black transition-colors">Complete</button>
+            <button onclick="updateTaskStatus('{{ task.id }}', 'Approved')" class="text-[9px] font-black uppercase tracking-widest border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 px-3 py-1.5 rounded hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">Pause</button>
+        {% elif task.status == 'Completed' %}
+            <button onclick="updateTaskStatus('{{ task.id }}', 'In Use')" class="text-[9px] font-black uppercase tracking-widest border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 px-3 py-1.5 rounded hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">Re-deploy</button>
+        {% endif %}
+    </div>
+
+    <div class="pt-3 border-t border-slate-50 dark:border-slate-700/50 flex justify-between items-center text-[9px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">
+        <span>#{{ task.id }}</span>
+        <span>{{ task.created_at|date:"M d, H:i" }}</span>
+    </div>
+</div>

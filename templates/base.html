@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SNSU DRRM System{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        enterprise: {
+                            deep: '#1B4332',
+                            muted: '#2D6A4F',
+                            active: '#E8F5E9',
+                            darkBg: '#0F172A',
+                            darkCard: '#111827',
+                            darkBorder: '#1F2937'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-collapsed: 72px;
+        }
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s; }
+        .sidebar { width: var(--sidebar-width); transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar.collapsed { width: var(--sidebar-collapsed); }
+        .sidebar.collapsed .sidebar-label { display: none; }
+        .sidebar.collapsed .sidebar-brand-text { display: none; }
+        
+        .main-content { margin-left: var(--sidebar-width); transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar.collapsed + .main-content { margin-left: var(--sidebar-collapsed); }
+        
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; margin: 4px 12px; border-radius: 8px; color: #6B7280; transition: all 0.2s; position: relative; }
+        .nav-item:hover { background-color: #F3F4F6; color: #1F2937; }
+        .nav-item.active { background-color: #E8F5E9; color: #2D6A4F; font-weight: 600; }
+        .nav-item.active::before { content: ''; position: absolute; left: -12px; top: 8px; bottom: 8px; width: 3px; background-color: #2D6A4F; border-radius: 0 4px 4px 0; }
+        
+        /* Dark Mode Adjustments */
+        .dark .nav-item { color: #9CA3AF; }
+        .dark .nav-item:hover { background-color: #1F2937; color: #F9FAFB; }
+        .dark .nav-item.active { background-color: rgba(34, 197, 94, 0.1); color: #22C55E; }
+        .dark .nav-item.active::before { background-color: #22C55E; }
+        
+        .db-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #6B7280; font-weight: 700; border-bottom: 1px solid #E5E7EB; }
+        .dark .db-table th { color: #9CA3AF; border-bottom-color: #1F2937; }
+        .db-table td { font-size: 13px; padding: 12px 16px; border-bottom: 1px solid #E5E7EB; }
+        .dark .db-table td { border-bottom-color: #1F2937; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-[#F8F9FA] dark:bg-enterprise-darkBg text-slate-900 dark:text-slate-100 min-h-screen">
+
+    <!-- Sidebar System -->
+    <aside id="sidebar" class="sidebar fixed left-0 top-0 h-screen bg-white dark:bg-enterprise-darkCard border-r border-slate-200 dark:border-enterprise-darkBorder z-50 flex flex-col">
+        <!-- Brand Area -->
+        <div class="h-20 flex items-center px-6 border-b border-slate-100 dark:border-enterprise-darkBorder overflow-hidden">
+            <div class="flex items-center flex-shrink-0">
+                <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center p-1.5 mr-4 border border-slate-100 dark:border-enterprise-darkBorder overflow-hidden">
+                    <img src="/static/img/LOGO.jpg" alt="SNSU Logo" class="w-full h-full object-contain">
+                </div>
+                <div class="sidebar-brand-text flex flex-col">
+                    <span class="font-black text-slate-800 dark:text-white leading-none tracking-tight">SNSU DRRM</span>
+                    <span class="text-[9px] font-black text-enterprise-muted uppercase tracking-widest mt-1">Gateway v1.0.4</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="flex-grow py-4 overflow-y-auto custom-scrollbar">
+            <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" title="Dashboard">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                <span class="sidebar-label">Dashboard</span>
+            </a>
+            <a href="{% url 'inventory' %}" class="nav-item {% if request.resolver_match.url_name == 'inventory' %}active{% endif %}" title="Inventory Registry">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                <span class="sidebar-label">Inventory Registry</span>
+            </a>
+            <a href="{% url 'stock_manage' %}" class="nav-item {% if request.resolver_match.url_name == 'stock_manage' %}active{% endif %}" title="Stock Management">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
+                <span class="sidebar-label">Stock Management</span>
+            </a>
+            <a href="{% url 'borrowing' %}" class="nav-item {% if request.resolver_match.url_name == 'borrowing' %}active{% endif %}" title="Borrowing System">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                <span class="sidebar-label">Borrowing System</span>
+            </a>
+            <a href="{% url 'kanban' %}" class="nav-item {% if request.resolver_match.url_name == 'kanban' %}active{% endif %}" title="Deployment Pipeline">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                <span class="sidebar-label">Deployment Pipeline</span>
+            </a>
+            <a href="{% url 'scanner' %}" class="nav-item {% if request.resolver_match.url_name == 'scanner' %}active{% endif %}" title="Field Scanner">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                <span class="sidebar-label">Field Scanner</span>
+            </a>
+            <a href="{% url 'analytics' %}" class="nav-item {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}" title="Analytics Engine">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <span class="sidebar-label">Analytics Engine</span>
+            </a>
+            <a href="{% url 'activity_logs' %}" class="nav-item {% if request.resolver_match.url_name == 'activity_logs' %}active{% endif %}" title="System Audit">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                <span class="sidebar-label">Audit Trail</span>
+            </a>
+            <div class="px-6 py-4 sidebar-label">
+                <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Administration</span>
+            </div>
+            <a href="{% url 'qr_generator' %}" class="nav-item {% if request.resolver_match.url_name == 'qr_generator' %}active{% endif %}" title="QR Generator">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                <span class="sidebar-label">QR Asset Tagging</span>
+            </a>
+            <a href="{% url 'user_management' %}" class="nav-item {% if request.resolver_match.url_name == 'user_management' %}active{% endif %}" title="User Management">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                <span class="sidebar-label">User Management</span>
+            </a>
+            <a href="{% url 'settings' %}" class="nav-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" title="Settings">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <span class="sidebar-label">Settings</span>
+            </a>
+        </nav>
+
+        <!-- Sidebar Footer -->
+        <div class="p-4 border-t border-slate-100 dark:border-enterprise-darkBorder">
+            <div class="flex items-center justify-between">
+                <button id="toggleSidebar" class="p-2 bg-slate-50 dark:bg-slate-800 rounded text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
+                </button>
+                <div class="sidebar-label text-[10px] text-slate-400 font-bold uppercase tracking-widest">v1.0.4 PRO</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content min-h-screen">
+        <!-- Top Toolbar -->
+        <header class="h-20 bg-white dark:bg-enterprise-darkCard border-b border-slate-200 dark:border-enterprise-darkBorder flex items-center justify-between px-8 sticky top-0 z-40">
+            <!-- Left: Search Bar -->
+            <div class="flex items-center">
+                <div class="relative group hidden md:block">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 group-focus-within:text-enterprise-deep transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                    <input type="text" placeholder="Search assets, tasks, or logs..." 
+                        class="pl-10 pr-12 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-enterprise-darkBorder rounded-full w-[350px] text-sm focus:outline-none focus:ring-2 focus:ring-enterprise-deep/20 focus:border-enterprise-deep transition-all placeholder:text-slate-400">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <kbd class="px-1.5 py-0.5 text-[10px] font-bold text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-enterprise-darkBorder rounded shadow-sm leading-none">⌘ F</kbd>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Actions & User -->
+            <div class="flex items-center space-x-4">
+                <!-- Action Buttons -->
+                <div class="flex items-center space-x-2 pr-4 border-r border-slate-100 dark:border-enterprise-darkBorder">
+                    <button id="toggleDarkMode" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-enterprise-deep dark:hover:text-white hover:bg-slate-100 transition-all">
+                        <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                        <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    </button>
+                    
+                    <!-- Messages Dropdown -->
+                    <div class="relative">
+                        <button id="msgBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-enterprise-deep hover:bg-slate-100 transition-all relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                            <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-enterprise-darkCard"></span>
+                        </button>
+                        <div id="msgDropdown" class="hidden absolute right-0 mt-3 w-80 bg-white dark:bg-enterprise-darkCard border border-slate-200 dark:border-enterprise-darkBorder rounded-2xl shadow-2xl z-50 overflow-hidden">
+                            <div class="p-4 border-b border-slate-100 dark:border-enterprise-darkBorder flex justify-between items-center">
+                                <span class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest">Inbox</span>
+                                <span class="text-[9px] font-bold text-enterprise-deep uppercase">2 New</span>
+                            </div>
+                            <div class="max-h-[300px] overflow-y-auto">
+                                <div class="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 border-b border-slate-50 dark:border-enterprise-darkBorder transition-colors cursor-pointer">
+                                    <div class="flex items-center mb-1">
+                                        <div class="w-2 h-2 bg-enterprise-deep rounded-full mr-2"></div>
+                                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">System Administrator</span>
+                                    </div>
+                                    <div class="text-xs font-bold text-slate-800 dark:text-white">Quarterly Audit Schedule</div>
+                                    <div class="text-[10px] text-slate-500 mt-1 line-clamp-1">The Q3 physical inventory audit is scheduled for Monday...</div>
+                                </div>
+                                <div class="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 border-b border-slate-50 dark:border-enterprise-darkBorder transition-colors cursor-pointer">
+                                    <div class="flex items-center mb-1">
+                                        <div class="w-2 h-2 bg-enterprise-deep rounded-full mr-2"></div>
+                                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">DRRM Unit</span>
+                                    </div>
+                                    <div class="text-xs font-bold text-slate-800 dark:text-white">Equipment Maintenance Alert</div>
+                                    <div class="text-[10px] text-slate-500 mt-1 line-clamp-1">Generator sets in Node B require routine service...</div>
+                                </div>
+                            </div>
+                            <a href="#" class="block p-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-enterprise-deep transition-colors bg-slate-50 dark:bg-slate-800/30">View All Messages</a>
+                        </div>
+                    </div>
+
+                    <!-- Notifications Dropdown -->
+                    <div class="relative">
+                        <button id="notifyBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-enterprise-deep hover:bg-slate-100 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                        </button>
+                        <div id="notifyDropdown" class="hidden absolute right-0 mt-3 w-80 bg-white dark:bg-enterprise-darkCard border border-slate-200 dark:border-enterprise-darkBorder rounded-2xl shadow-2xl z-50 overflow-hidden">
+                            <div class="p-4 border-b border-slate-100 dark:border-enterprise-darkBorder">
+                                <span class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest">Recent Activity</span>
+                            </div>
+                            <div id="notificationList" class="max-h-[300px] overflow-y-auto divide-y divide-slate-50 dark:divide-enterprise-darkBorder">
+                                <!-- Dynamic Items will be loaded here or shown as placeholders -->
+                                <div class="p-4 text-center">
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase italic">Monitoring System Activity...</p>
+                                </div>
+                            </div>
+                            <a href="{% url 'activity_logs' %}" class="block p-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-enterprise-deep transition-colors bg-slate-50 dark:bg-slate-800/30">Open Audit Trail</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Profile -->
+                <div class="flex items-center space-x-4 pl-2">
+                    <div class="text-right">
+                        <div class="text-sm font-bold text-slate-800 dark:text-white leading-none">{{ user.username }}</div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mt-1">{{ user.email|default:"snsu.drrm@university.edu" }}</div>
+                    </div>
+                    <div class="w-11 h-11 rounded-full bg-enterprise-deep border-2 border-white shadow-md flex items-center justify-center text-white text-sm font-black ring-4 ring-slate-50 dark:ring-slate-900">
+                        {{ user.username|slice:":1"|upper }}
+                    </div>
+                    <form action="{% url 'logout' %}" method="post" class="inline m-0 p-0">
+                        {% csrf_token %}
+                        <button type="submit" class="text-xs font-black text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest pl-2 bg-transparent border-none cursor-pointer">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dynamic Content -->
+        <div class="p-8 max-w-[1400px]">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <script>
+        // Global State & Elements
+        const html = document.documentElement;
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebar');
+        const darkModeBtn = document.getElementById('toggleDarkMode');
+        const moonIcon = document.getElementById('moonIcon');
+        const sunIcon = document.getElementById('sunIcon');
+        const msgBtn = document.getElementById('msgBtn');
+        const msgDropdown = document.getElementById('msgDropdown');
+        const notifyBtn = document.getElementById('notifyBtn');
+        const notifyDropdown = document.getElementById('notifyDropdown');
+
+        // Theme Logic
+        function updateIcons() {
+            if (html.classList.contains('dark')) {
+                moonIcon.classList.add('hidden');
+                sunIcon.classList.remove('hidden');
+            } else {
+                moonIcon.classList.remove('hidden');
+                sunIcon.classList.add('hidden');
+            }
+        }
+
+        // Initialize Theme
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+        }
+        updateIcons();
+
+        darkModeBtn.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+            updateIcons();
+        });
+
+        // Sidebar Initialization
+        if (localStorage.getItem('sidebarCollapsed') === 'true') {
+            sidebar.classList.add('collapsed');
+        }
+        
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        });
+
+        // Dropdown Logic
+        function toggleDropdown(btn, menu) {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menu.classList.toggle('hidden');
+                if (menu === notifyDropdown && !menu.classList.contains('hidden')) fetchNotifications();
+                if (menu === msgDropdown) notifyDropdown.classList.add('hidden');
+                else msgDropdown.classList.add('hidden');
+            });
+        }
+
+        toggleDropdown(msgBtn, msgDropdown);
+        toggleDropdown(notifyBtn, notifyDropdown);
+
+        function fetchNotifications() {
+            const list = document.getElementById('notificationList');
+            list.innerHTML = '<div class="p-4 text-center"><p class="text-[9px] text-slate-400 font-bold uppercase animate-pulse">Syncing logs...</p></div>';
+            fetch("{% url 'get_notifications' %}")
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success' && data.notifications.length > 0) {
+                        list.innerHTML = data.notifications.map(n => `
+                            <div class="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors border-b border-slate-50 dark:border-enterprise-darkBorder last:border-0">
+                                <div class="flex justify-between items-start mb-1">
+                                    <span class="text-[9px] font-black text-enterprise-deep uppercase tracking-widest">${n.action}</span>
+                                    <span class="text-[8px] font-bold text-slate-400 uppercase">${n.time}</span>
+                                </div>
+                                <div class="text-xs font-bold text-slate-800 dark:text-white leading-tight">${n.details}</div>
+                                <div class="text-[9px] text-slate-400 mt-1 uppercase font-bold tracking-tighter">Auth: ${n.user}</div>
+                            </div>`).join('');
+                    } else {
+                        list.innerHTML = '<div class="p-6 text-center text-[10px] text-slate-400 font-bold uppercase italic">No recent activities.</div>';
+                    }
+                }).catch(() => {
+                    list.innerHTML = '<div class="p-4 text-center text-red-500 text-[10px] font-bold uppercase">Sync Failure</div>';
+                });
+        }
+
+        window.addEventListener('click', () => {
+            msgDropdown.classList.add('hidden');
+            notifyDropdown.classList.add('hidden');
+        });
+
+        msgDropdown.addEventListener('click', (e) => e.stopPropagation());
+        notifyDropdown.addEventListener('click', (e) => e.stopPropagation());
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

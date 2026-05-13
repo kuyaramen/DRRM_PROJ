@@ -1,0 +1,9 @@
+/* Main Stylesheet for SNSU DRRM Inventory */
+:root {
+    --primary: #10b981;
+    --primary-dark: #059669;
+    --bg: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+}

@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Operational Analytics | SNSU DRRM{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Logistics Analytics</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Deep-dive metrics and predictive forecasting for resource lifecycle management.</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <select class="btn-base bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
+                <option>Last 30 Days</option>
+                <option>Last Quarter</option>
+                <option>Year to Date</option>
+            </select>
+            <button class="btn-base bg-enterprise-muted text-white">Generate PDF Report</button>
+        </div>
+    </div>
+
+    <!-- Analytics Hero Strip -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="enterprise-card p-6 border-l-4 border-l-enterprise-deep">
+            <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Inventory Health Score</span>
+            <div class="mt-2 flex items-end space-x-2">
+                <span class="text-3xl font-black text-slate-800 dark:text-white">94/100</span>
+                <span class="text-emerald-500 text-xs font-bold mb-1">+2.4%</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2">Overall system stability and availability metric.</p>
+        </div>
+        <div class="enterprise-card p-6 border-l-4 border-l-blue-500">
+            <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Utilization Efficiency</span>
+            <div class="mt-2 flex items-end space-x-2">
+                <span class="text-3xl font-black text-slate-800 dark:text-white">78.2%</span>
+                <span class="text-slate-400 text-xs font-bold mb-1">STABLE</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2">Resource deployment vs. inventory baseline.</p>
+        </div>
+        <div class="enterprise-card p-6 border-l-4 border-l-amber-500">
+            <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Forecast Variance</span>
+            <div class="mt-2 flex items-end space-x-2">
+                <span class="text-3xl font-black text-slate-800 dark:text-white">±12%</span>
+                <span class="text-amber-500 text-xs font-bold mb-1">CAUTION</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2">Current usage deviation from predictive model.</p>
+        </div>
+    </div>
+
+    <!-- Primary Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="enterprise-card p-8">
+            <h3 class="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-widest mb-8">Supply Consumption Cycle</h3>
+            <div class="h-[300px]">
+                <canvas id="consumptionChart"></canvas>
+            </div>
+        </div>
+        <div class="enterprise-card p-8">
+            <h3 class="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-widest mb-8">Category Deployment Analysis</h3>
+            <div class="h-[300px]">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Insights -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-4">
+            <div class="enterprise-card p-6 h-full">
+                <h3 class="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-widest mb-6">Asset Longevity Prediction</h3>
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[13px] text-slate-600 dark:text-slate-300">Generator Sets</span>
+                        <span class="text-[13px] font-bold text-slate-800 dark:text-white">18.2 Mo Rem.</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[13px] text-slate-600 dark:text-slate-300">Floodlights (Heavy)</span>
+                        <span class="text-[13px] font-bold text-slate-800 dark:text-white">24.5 Mo Rem.</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[13px] text-slate-600 dark:text-slate-300">Field Radios (VHF)</span>
+                        <span class="text-[13px] font-bold text-slate-800 dark:text-white">12.0 Mo Rem.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="lg:col-span-8">
+            <div class="enterprise-card p-6 h-full">
+                <h3 class="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-widest mb-6">Strategic Recommendations</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-enterprise-darkBorder">
+                        <h4 class="text-[12px] font-bold text-enterprise-deep dark:text-emerald-400 uppercase tracking-wider mb-2">Procurement Focus</h4>
+                        <p class="text-[12px] text-slate-600 dark:text-slate-400 leading-relaxed">Increase buffer stock for consumable medical supplies by 15% ahead of the upcoming typhoon season.</p>
+                    </div>
+                    <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-enterprise-darkBorder">
+                        <h4 class="text-[12px] font-bold text-enterprise-deep dark:text-emerald-400 uppercase tracking-wider mb-2">Deployment Strategy</h4>
+                        <p class="text-[12px] text-slate-600 dark:text-slate-400 leading-relaxed">Consolidate field radio maintenance into a single cycle to reduce downtime for critical communication units.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    Chart.defaults.font.family = 'Inter, sans-serif';
+    Chart.defaults.color = '#9CA3AF';
+
+    new Chart(document.getElementById('consumptionChart'), {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Usage Trend',
+                data: [65, 59, 80, 81, 56, 95],
+                borderColor: '#1B4332',
+                backgroundColor: 'rgba(27, 67, 50, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { 
+                y: { grid: { color: 'rgba(156, 163, 175, 0.05)' }, border: { display: false } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Equipment', 'Consumable', 'Medical', 'Safety', 'Tools'],
+            datasets: [{
+                data: [45, 32, 56, 24, 38],
+                backgroundColor: '#2D6A4F',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { 
+                y: { grid: { color: 'rgba(156, 163, 175, 0.05)' }, border: { display: false } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+</script>
+{% endblock %}

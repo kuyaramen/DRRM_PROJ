@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | SNSU DRRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        enterprise: {
+                            deep: '#1B4332',
+                            muted: '#2D6A4F',
+                            dark: '#0F172A',
+                            darkCard: '#111827',
+                            darkBorder: '#1F2937'
+                        }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0F172A; }
+        .login-mesh {
+            background-image: radial-gradient(at 0% 0%, hsla(158, 43%, 18%, 1) 0, transparent 50%), 
+                              radial-gradient(at 100% 100%, hsla(158, 43%, 10%, 1) 0, transparent 50%);
+        }
+        .enterprise-input {
+            @apply w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg outline-none focus:border-enterprise-muted text-white transition-all;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6 login-mesh">
+
+    <div class="w-full max-w-sm">
+        <!-- Brand Header -->
+        <div class="text-center mb-10">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl shadow-2xl mb-4 border border-white/10 p-2 overflow-hidden">
+                <img src="/static/img/LOGO.jpg" alt="Surigao del Norte State University" class="w-full h-full object-contain">
+            </div>
+            <h1 class="text-2xl font-extrabold text-white tracking-tight uppercase">SNSU DRRM</h1>
+            <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Institutional Inventory Gateway</p>
+        </div>
+
+        <!-- Login Container -->
+        <div class="bg-enterprise-darkCard border border-enterprise-darkBorder rounded-2xl shadow-2xl p-8">
+            <div class="mb-8">
+                <h2 class="text-lg font-bold text-white">System Authorization</h2>
+                <p class="text-slate-500 text-xs mt-1">Please provide your administrative credentials.</p>
+            </div>
+
+            {% if form.errors %}
+            <div class="bg-red-900/20 border border-red-900/50 text-red-400 px-4 py-3 rounded-lg text-xs mb-6 font-bold uppercase tracking-wide">
+                Authentication Failed. Access Denied.
+            </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'login' %}" class="space-y-5">
+                {% csrf_token %}
+                <div>
+                    <label for="id_username" class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Username</label>
+                    <input type="text" name="username" id="id_username" required
+                        class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 focus:border-enterprise-muted rounded-lg outline-none text-sm text-white placeholder-slate-700 transition-all"
+                        placeholder="Admin Username">
+                </div>
+                
+                <div>
+                    <label for="id_password" class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Password</label>
+                    <input type="password" name="password" id="id_password" required
+                        class="w-full px-4 py-3 bg-slate-900/50 border border-slate-800 focus:border-enterprise-muted rounded-lg outline-none text-sm text-white placeholder-slate-700 transition-all"
+                        placeholder="••••••••">
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" 
+                        class="w-full py-3.5 bg-enterprise-deep hover:bg-enterprise-muted text-white rounded-lg font-black text-xs uppercase tracking-[0.2em] shadow-lg transition-all active:scale-95">
+                        Establish Connection
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-8 pt-6 border-t border-slate-800/50 text-center">
+                <p class="text-slate-600 text-[10px] font-bold uppercase tracking-widest leading-relaxed">
+                    Authorized Personnel Only<br>
+                    <span class="opacity-50">Logistics & Asset Management System</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer Info -->
+        <div class="text-center mt-8">
+            <p class="text-slate-700 text-[9px] font-black uppercase tracking-[0.3em]">© 2026 SNSU DRRM UNIT • SECURE NODE</p>
+        </div>
+    </div>
+
+</body>
+</html>

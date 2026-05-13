@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}Asset Management | {{ item.item_code }}{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Navigation Breadcrumb -->
+    <nav class="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+        <a href="{% url 'inventory' %}" class="hover:text-enterprise-deep transition-colors">Registry</a>
+        <span>/</span>
+        <span class="text-slate-600 dark:text-slate-300">{{ item.item_code }}</span>
+    </nav>
+
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-slate-200 dark:border-slate-800 pb-8 gap-4">
+        <div>
+            <div class="flex items-center space-x-3 mb-2">
+                <span class="px-2 py-0.5 bg-enterprise-deep/10 text-enterprise-deep dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded border border-enterprise-deep/20">
+                    {{ item.category }}
+                </span>
+                <span class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">{{ item.item_code }}</span>
+            </div>
+            <h2 class="text-3xl font-black text-slate-800 dark:text-white uppercase tracking-tight">{{ item.name }}</h2>
+            <p class="text-slate-500 dark:text-slate-400 mt-2 max-w-2xl text-sm leading-relaxed">{{ item.description|default:"Institutional asset registered for DRRM operations." }}</p>
+        </div>
+        <div class="flex items-center space-x-6">
+            <div class="text-right border-r border-slate-200 dark:border-slate-800 pr-6">
+                <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventory Status</span>
+                <span class="text-xs font-bold uppercase tracking-widest {% if item.status == 'Available' %}text-emerald-600{% elif item.status == 'Low Stock' %}text-amber-500{% else %}text-red-600{% endif %}">
+                    ● {{ item.status }}
+                </span>
+            </div>
+            <div class="enterprise-card p-2 bg-white dark:bg-white flex flex-col items-center">
+                <div id="itemQR"></div>
+                <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">{{ item.item_code }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="enterprise-card p-6 bg-white dark:bg-enterprise-darkCard border-slate-200 dark:border-enterprise-darkBorder">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quantity On Hand</span>
+            <div class="text-3xl font-black text-slate-800 dark:text-white mt-2">{{ item.quantity }}</div>
+        </div>
+        <div class="enterprise-card p-6 bg-white dark:bg-enterprise-darkCard border-slate-200 dark:border-enterprise-darkBorder">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Deployments</span>
+            <div class="text-3xl font-black text-slate-800 dark:text-white mt-2">{{ active_borrowings|length }}</div>
+        </div>
+        <div class="enterprise-card p-6 bg-white dark:bg-enterprise-darkCard border-slate-200 dark:border-enterprise-darkBorder">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Last Ledger Entry</span>
+            <div class="text-[11px] font-bold text-slate-600 dark:text-slate-300 mt-4 uppercase tracking-wider">
+                {{ transactions.0.timestamp|date:"M d, Y"|default:"INITIATED" }}
+            </div>
+        </div>
+        <div class="enterprise-card p-6 bg-white dark:bg-enterprise-darkCard border-slate-200 dark:border-enterprise-darkBorder">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Low Stock Alert</span>
+            <div class="text-[11px] font-bold text-slate-600 dark:text-slate-300 mt-4 uppercase tracking-wider">
+                Threshold: {{ item.low_stock_threshold }}
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN ACTION INTERFACE -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Action Terminal (Left) -->
+        <div class="lg:col-span-5 space-y-6">
+            <div class="enterprise-card overflow-hidden">
+                <div class="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                    <h3 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest">Operational Console</h3>
+                    <div class="flex space-x-1">
+                        <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                        <div class="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
+                    </div>
+                </div>
+                
+                <div class="p-6 space-y-8">
+                    <!-- Action Forms Section -->
+                    <div class="space-y-6">
+                        <!-- Stock Adjustment -->
+                        <div class="space-y-3">
+                            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Inventory Adjustment</h4>
+                            <form action="{% url 'stock_manage' %}" method="POST" class="flex items-center space-x-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="item_id" value="{{ item.id }}">
+                                <select name="type" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[11px] font-bold uppercase rounded p-2 outline-none">
+                                    <option value="IN">IN</option>
+                                    <option value="OUT">OUT</option>
+                                </select>
+                                <input type="number" name="quantity" value="1" min="1" class="w-16 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold rounded p-2 outline-none">
+                                <input type="text" name="remarks" placeholder="Remarks..." class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[11px] rounded p-2 outline-none">
+                                <button type="submit" class="p-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Borrowing Authorization -->
+                        <div class="space-y-3 pt-4 border-t border-slate-50 dark:border-slate-800">
+                            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Authorize Deployment</h4>
+                            <form action="{% url 'borrowing' %}" method="POST" class="space-y-3">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="borrow">
+                                <input type="hidden" name="item_id" value="{{ item.id }}">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <input type="text" name="borrower_name" placeholder="Officer Name" required class="col-span-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[11px] rounded p-2.5 outline-none">
+                                    <input type="number" name="quantity" value="1" min="1" max="{{ item.quantity }}" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[11px] font-bold rounded p-2.5 outline-none">
+                                </div>
+                                <button type="submit" class="w-full bg-enterprise-deep text-white text-[10px] font-black uppercase tracking-[0.2em] py-3 rounded hover:bg-black transition-all">Establish Field Deployment</button>
+                            </form>
+                        </div>
+
+                        <!-- Active Borrowings / Return -->
+                        {% if active_borrowings %}
+                        <div class="space-y-3 pt-4 border-t border-slate-50 dark:border-slate-800">
+                            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Active Field Records</h4>
+                            <div class="space-y-2">
+                                {% for b in active_borrowings %}
+                                <div class="flex justify-between items-center p-2.5 bg-slate-50 dark:bg-slate-900/50 rounded border border-slate-100 dark:border-slate-800">
+                                    <div>
+                                        <div class="text-[11px] font-black text-slate-700 dark:text-slate-300">{{ b.borrower_name }}</div>
+                                        <div class="text-[9px] text-slate-400 uppercase font-bold">{{ b.quantity }} Units • {{ b.date_borrowed|date:"M d" }}</div>
+                                    </div>
+                                    <form action="{% url 'borrowing' %}" method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="return">
+                                        <input type="hidden" name="borrowing_id" value="{{ b.id }}">
+                                        <button type="submit" class="text-[9px] font-black text-enterprise-muted hover:text-enterprise-deep uppercase tracking-widest px-2 py-1 border border-enterprise-muted/20 rounded">Recall</button>
+                                    </form>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History & Ledger (Right) -->
+        <div class="lg:col-span-7 space-y-6">
+            <div class="enterprise-card overflow-hidden">
+                <div class="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest">Asset Audit Ledger</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="db-table w-full">
+                        <thead>
+                            <tr>
+                                <th class="text-left">Op Type</th>
+                                <th class="text-left">Quantity</th>
+                                <th class="text-left">Officer</th>
+                                <th class="text-left">Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tx in transactions %}
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 border-b border-slate-50 dark:border-slate-800 last:border-0">
+                                <td class="py-4">
+                                    <span class="text-[9px] font-black px-2 py-0.5 rounded uppercase {% if tx.type == 'IN' %}bg-emerald-50 text-emerald-600{% else %}bg-rose-50 text-rose-600{% endif %}">
+                                        {{ tx.get_type_display }}
+                                    </span>
+                                </td>
+                                <td class="font-bold text-slate-700 dark:text-white">{{ tx.quantity }}</td>
+                                <td class="text-slate-600 dark:text-slate-400 text-xs">{{ tx.user.username|default:"System" }}</td>
+                                <td class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ tx.timestamp|date:"M d, H:i" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="py-12 text-center text-slate-300 font-bold uppercase tracking-widest italic">No ledger entries for this asset.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+    new QRCode(document.getElementById("itemQR"), {
+        text: "{{ item.qr_payload }}",
+        width: 64,
+        height: 64,
+        colorDark : "#1B4332",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.M
+    });
+</script>
+{% endblock %}

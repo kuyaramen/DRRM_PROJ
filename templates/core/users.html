@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management | SNSU DRRM{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header Area -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight uppercase">User Registry</h1>
+            <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Personnel Authorization & Role Management</p>
+        </div>
+        <button onclick="document.getElementById('addUserModal').classList.remove('hidden')" class="px-6 py-3 bg-enterprise-deep hover:bg-enterprise-muted text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg transition-all active:scale-95 flex items-center cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+            Enroll New Personnel
+        </button>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-white dark:bg-enterprise-darkCard border border-slate-200 dark:border-enterprise-darkBorder p-6 rounded-2xl shadow-sm">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Users</div>
+            <div class="text-3xl font-black text-slate-800 dark:text-white">{{ users.count }}</div>
+        </div>
+        <div class="bg-white dark:bg-enterprise-darkCard border border-slate-200 dark:border-enterprise-darkBorder p-6 rounded-2xl shadow-sm">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Active Staff</div>
+            <div class="text-3xl font-black text-green-600">{{ users.filter.is_staff.count }}</div>
+        </div>
+        <div class="bg-white dark:bg-enterprise-darkCard border border-slate-200 dark:border-enterprise-darkBorder p-6 rounded-2xl shadow-sm">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Administrators</div>
+            <div class="text-3xl font-black text-enterprise-deep">{{ users.filter.is_superuser.count }}</div>
+        </div>
+        <div class="bg-white dark:bg-enterprise-darkCard border border-slate-200 dark:border-enterprise-darkBorder p-6 rounded-2xl shadow-sm">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">New this month</div>
+            <div class="text-3xl font-black text-blue-600">3</div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-white dark:bg-enterprise-darkCard border border-slate-200 dark:border-enterprise-darkBorder rounded-2xl shadow-sm overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 dark:bg-slate-800/50">
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 dark:border-enterprise-darkBorder">Personnel</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 dark:border-enterprise-darkBorder">Authorization</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 dark:border-enterprise-darkBorder">Date Joined</th>
+                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 dark:border-enterprise-darkBorder text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-enterprise-darkBorder">
+                {% for u in users %}
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
+                    <td class="px-6 py-5">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-enterprise-darkBorder flex items-center justify-center text-xs font-black text-slate-600 dark:text-slate-300 mr-4 shadow-sm group-hover:scale-110 transition-transform">
+                                {{ u.username|slice:":1"|upper }}
+                            </div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800 dark:text-white">{{ u.username }}</div>
+                                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-tight">{{ u.email|default:"No email set" }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-5">
+                        <div class="flex flex-wrap gap-2">
+                            {% if u.is_superuser %}
+                            <span class="px-2.5 py-1 bg-enterprise-deep text-white text-[9px] font-black uppercase tracking-widest rounded-md shadow-sm">Superuser</span>
+                            {% elif u.is_staff %}
+                            <span class="px-2.5 py-1 bg-blue-600 text-white text-[9px] font-black uppercase tracking-widest rounded-md shadow-sm">Staff</span>
+                            {% else %}
+                            <span class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[9px] font-black uppercase tracking-widest rounded-md border border-slate-200 dark:border-enterprise-darkBorder">Standard</span>
+                            {% endif %}
+                            
+                            {% if u.is_active %}
+                            <span class="px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-[9px] font-black uppercase tracking-widest rounded-md border border-green-200 dark:border-green-900/50">Active</span>
+                            {% else %}
+                            <span class="px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[9px] font-black uppercase tracking-widest rounded-md border border-red-200 dark:border-red-900/50">Inactive</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-5">
+                        <div class="text-[11px] font-bold text-slate-600 dark:text-slate-400">{{ u.date_joined|date:"M d, Y" }}</div>
+                        <div class="text-[9px] text-slate-400 uppercase tracking-tighter">{{ u.date_joined|time }}</div>
+                    </td>
+                    <td class="px-6 py-5 text-right">
+                        <div class="flex items-center justify-end space-x-2">
+                            <a href="/admin/auth/user/{{ u.id }}/change/" class="p-2 text-slate-400 hover:text-enterprise-deep hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all" title="Edit Profile">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                            </a>
+                            <a href="/admin/auth/user/{{ u.id }}/password/" class="p-2 text-slate-400 hover:text-orange-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all" title="Reset Password">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Admin Fallback -->
+    <div class="flex justify-center pt-4">
+        <a href="{% url 'admin:auth_user_changelist' %}" target="_blank" class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-enterprise-deep transition-colors flex items-center group">
+            Advanced Authorization Management
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+        </a>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-enterprise-darkCard rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 dark:border-enterprise-darkBorder">
+            <div class="p-6 border-b border-slate-100 dark:border-enterprise-darkBorder flex justify-between items-center">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white tracking-tight">Enroll New Personnel</h3>
+                <button onclick="document.getElementById('addUserModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <form action="{% url 'add_user' %}" method="POST" class="p-6 space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Username / ID</label>
+                    <input type="text" name="username" required class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:border-enterprise-muted">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Email Address (Optional)</label>
+                    <input type="email" name="email" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:border-enterprise-muted">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Temporary Password</label>
+                    <input type="password" name="password" required class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:border-enterprise-muted">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Authorization Level</label>
+                    <select name="role" required class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:border-enterprise-muted">
+                        <option value="Standard">Standard (Viewer/Borrower)</option>
+                        <option value="Staff">Staff (Operations & Inventory)</option>
+                        <option value="Superuser">Superuser (Full System Access)</option>
+                    </select>
+                </div>
+                <div class="pt-4 border-t border-slate-100 dark:border-enterprise-darkBorder flex justify-end space-x-3">
+                    <button type="button" onclick="document.getElementById('addUserModal').classList.add('hidden')" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-enterprise-deep text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:brightness-110 transition-all cursor-pointer">Enroll Personnel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
